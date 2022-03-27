@@ -24,7 +24,21 @@ public class ArgsTest {
 
     //单选项单参数
     //  -l -p 8080 -d /usr/logs
-    //TODO: Bool -l
+    @Test
+    public void should_set_bool_option_to_true_if_flag_present() {
+        BooleanOption option = Args.parse(BooleanOption.class, "-l");
+        assertTrue(option.logging());
+    }
+
+    @Test
+    public void should_set_bool_option_to_false_if_flag_not_present() {
+        BooleanOption option = Args.parse(BooleanOption.class);
+        assertFalse(option.logging());
+    }
+
+    static record BooleanOption(@Option("l") boolean logging) {
+    }
+
     //TODO: Integer -p
     //TODO: String -d
     //多选项单参数
@@ -53,7 +67,7 @@ public class ArgsTest {
     @Test
     @Disabled
     public void should_example_two() {
-        ListOptions options = (Options) Args.parse(ListOptions.class, "-g", "this", "is", "a", "list", "-d", "1", "2", "-3", "5");
+        ListOptions options = Args.parse(ListOptions.class, "-g", "this", "is", "a", "list", "-d", "1", "2", "-3", "5");
         assertArrayEquals(new String[]{"this", "is", "a", "list"}, options.group());
         assertArrayEquals(new int[]{1, 2, -3, 5}, options.decimals());
     }
