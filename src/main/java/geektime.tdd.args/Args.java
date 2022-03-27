@@ -8,13 +8,36 @@ import java.util.List;
 public class Args {
     public static <T> T parse(Class<T> optionsClass, String... args) {
         try {
+            List<String> arguments = Arrays.asList(args);
+
             Constructor<?> constructor = optionsClass.getDeclaredConstructors()[0];
             Parameter parameter = constructor.getParameters()[0];
-            Option option = parameter.getAnnotation(Option.class);
-            List<String> arguments = Arrays.asList(args);
-            return (T) constructor.newInstance(arguments.contains("-" + option.value()));
+
+            Object[] values = Arrays.stream(constructor.getParameters()).map(it -> parseOption(arguments, it)).toArray();
+
+            return (T) constructor.newInstance(values);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    private static Object parseOption(List<String> arguments, Parameter parameter) {
+        Object value = null;
+        Option option = parameter.getAnnotation(Option.class);
+        if (parameter.getType() == boolean.class) {
+            value = arguments.contains("-" + option.value());
+        }
+
+        if (parameter.getType() == int.class) {
+            int index = arguments.indexOf("-" + option.value());
+            value = Integer.parseInt(arguments.get(index + 1));
+        }
+
+        if (parameter.getType() == String.class) {
+            int index = arguments.indexOf("-" + option.value());
+            value = String.valueOf(arguments.get(index + 1));
+        }
+
+        return value;
     }
 }
