@@ -14,7 +14,13 @@ public class Args {
             Constructor<?> constructor = optionsClass.getDeclaredConstructors()[0];
             Parameter parameter = constructor.getParameters()[0];
 
-            Object[] values = Arrays.stream(constructor.getParameters()).map(it -> parseOption(arguments, it)).toArray();
+            Object[] values = Arrays.stream(constructor.getParameters()).map(it -> {
+                try {
+                    return parseOption(arguments, it);
+                } catch (TooManyArgumentsException e) {
+                    throw new RuntimeException(e);
+                }
+            }).toArray();
 
             return (T) constructor.newInstance(values);
         } catch (Exception ex) {
@@ -22,7 +28,7 @@ public class Args {
         }
     }
 
-    private static Object parseOption(List<String> arguments, Parameter parameter) {
+    private static Object parseOption(List<String> arguments, Parameter parameter) throws TooManyArgumentsException {
         Option option = parameter.getAnnotation(Option.class);
 
         return PARSERS.get(parameter.getType()).parse(arguments, option);
