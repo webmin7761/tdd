@@ -5,9 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.annotation.Annotation;
 
 import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BooleanOptionParserTest {
 
@@ -28,6 +26,11 @@ public class BooleanOptionParserTest {
     @Test
     public void should_set_default_value_to_false_if_option_not_present() throws TooManyArgumentsException {
         assertFalse(new BooleanOptionParser().parse(asList(), option("l")));
+    }
+
+    @Test
+    public void should_set_value_to_true_if_option_present() throws TooManyArgumentsException {
+        assertTrue(new BooleanOptionParser().parse(asList("-l"), option("l")));
     }
 
     static Option option(String value) {
