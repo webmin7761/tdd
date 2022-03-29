@@ -1,5 +1,6 @@
 package geektime.tdd.args;
 
+import geektime.tdd.args.exceptions.IllegalValueException;
 import geektime.tdd.args.exceptions.InsufficientArgumentsException;
 import geektime.tdd.args.exceptions.TooManyArgumentsException;
 import org.junit.jupiter.api.Nested;
@@ -79,7 +80,35 @@ public class OptionParsersTest {
         }
     }
 
+    @Nested
+    class ListOptionParser {
+        @Test
+        public void should_parse_list_value() {
+            assertArrayEquals(new String[]{"this", "is"}, OptionParsers.list(String[]::new, String::valueOf).parse(asList("-g", "this", "is"), option("g")));
+        }
 
+        @Test
+        public void should_not_treat_negative_int_as_flag(){
+            assertArrayEquals(new Integer[]{-2, -1}, OptionParsers.list(Integer[]::new, Integer::parseInt).parse(asList("-g", "-2", "-1"), option("g")));
+        }
+
+        @Test
+        public void should_use_empty_array_as_default_value() {
+            String[] value = OptionParsers.list(String[]::new, String::valueOf).parse(asList(), option("g"));
+            assertEquals(0, value.length);
+        }
+
+        @Test
+        public void should_throw_exception_if_value_parser_cant_parse_value() {
+            Function<String, String> parser = it -> {
+                throw new RuntimeException();
+            };
+            IllegalValueException e = assertThrows(IllegalValueException.class, () ->
+                    OptionParsers.list(String[]::new, parser).parse(asList("-g", "this", "is"), option("g")));
+            assertEquals("g", e.getOption());
+            assertEquals("this", e.getValue());
+        }
+    }
 
     static Option option(String value) {
         return new Option() {
