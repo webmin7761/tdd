@@ -1,4 +1,4 @@
-package geektime.tdd.args;
+package geektime.tdd.args.exceptions;
 
 public class TooManyArgumentsException extends RuntimeException {
     private String option;
