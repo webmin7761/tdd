@@ -9,21 +9,18 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-class SingleValuedOptionParser<T> implements OptionParser<T> {
-    T defaultValue;
-    Function<String, T> valueParse;
+class OptionParsers {
 
-    public SingleValuedOptionParser(T defaultValue, Function<String, T> valueParse) {
-        this.defaultValue = defaultValue;
-        this.valueParse = valueParse;
+    public static OptionParser<Boolean> bool() {
+        return (arguments, option) -> values(arguments, option, 0)
+                .map(it -> true).orElse(false);
     }
 
-    @Override
-    public T parse(List<String> arguments, Option option) throws TooManyArgumentsException {
-        return values(arguments, option, 1).map(it -> parseValue(option, it.get(0))).orElse(defaultValue);
+    public static <T> OptionParser<T> unary(T defaultValue, Function<String, T> valueParse) {
+        return (arguments, option) -> values(arguments, option, 1).map(it -> parseValue(option, it.get(0), valueParse)).orElse(defaultValue);
     }
 
-    static Optional<List<String>> values(List<String> arguments, Option option, int expectedSize) {
+    private static Optional<List<String>> values(List<String> arguments, Option option, int expectedSize) {
 
         int index = arguments.indexOf("-" + option.value());
 
@@ -41,7 +38,7 @@ class SingleValuedOptionParser<T> implements OptionParser<T> {
         return Optional.of(values);
     }
 
-    private T parseValue(Option option, String value) {
+    private static <T> T parseValue(Option option, String value, Function<String, T> valueParse) {
         try {
             return valueParse.apply(value);
         } catch (Exception e) {
@@ -49,7 +46,7 @@ class SingleValuedOptionParser<T> implements OptionParser<T> {
         }
     }
 
-    static List<String> values(List<String> arguments, int index) {
+    private static List<String> values(List<String> arguments, int index) {
 
         return arguments.subList(index + 1, IntStream.range(index + 1, arguments.size())
                 .filter(it -> arguments.get(it).startsWith("-"))
